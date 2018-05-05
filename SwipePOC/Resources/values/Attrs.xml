@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+  <declare-styleable name="SwipableViewWithActionsView">
+    <attr name="ZGravity" format="enum">
+      <enum name="Background" value="0"/>
+      <enum name="Foreground" value="1"/>
+    </attr>
+  </declare-styleable>
+</resources>
