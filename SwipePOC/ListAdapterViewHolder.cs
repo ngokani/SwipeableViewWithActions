@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Android.App;
 using Android.Content;
 using Android.Graphics;
 using Android.Graphics.Drawables;
-using Android.OS;
-using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 
@@ -16,20 +9,15 @@ namespace SwipePOC
 {
     public class ListAdapterViewHolder : SwipeableViewWithActions
     {
-        private TextView _textView;
+        private readonly TextView _textView;
         public string Text
         {
             get => _textView?.Text;
-            set
-            {
-                _textView.Text = value;
-            }
+            set => _textView.Text = value;
         }
 
-        public int ItemPosition { get; private set; }
+        public int ItemPosition { get; }
 
-        private Button _favoriteButton;
-        private Button _forgetButton;
         public event EventHandler<int> OnSwipedLeft;
         public event EventHandler<int> OnSwipedRight;
 
@@ -41,13 +29,13 @@ namespace SwipePOC
             SetMinimumHeight(200);
             SwipeToActionEnabled = true;
 
-            _favoriteButton = new Button(context);
-            _favoriteButton.Background = new ColorDrawable(Color.Blue);
-            _favoriteButton.Text = "Favorite";
+            var favoriteButton = new Button(context);
+            favoriteButton.Background = new ColorDrawable(Color.Blue);
+            favoriteButton.Text = "Favorite";
 
-            _forgetButton = new Button(context);
-            _forgetButton.Background = new ColorDrawable(Color.Red);
-            _forgetButton.Text = "Forget";
+            var forgetButton = new Button(context);
+            forgetButton.Background = new ColorDrawable(Color.Red);
+            forgetButton.Text = "Forget";
 
             FrameLayout frameLayout = new FrameLayout(context);
             frameLayout.Background = new ColorDrawable(Color.White);
@@ -60,8 +48,8 @@ namespace SwipePOC
             frameLayout.AddView(_textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent));
 
             AddContentView(frameLayout);
-            AddLeftActionButton(_forgetButton);
-            AddRightActionButton(_favoriteButton);
+            AddLeftActionButton(forgetButton);
+            AddRightActionButton(favoriteButton);
         }
 
         public void PrepareForReuse()
