@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Android.App;
+﻿using System.Collections.Generic;
 using Android.Content;
-using Android.OS;
-using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 
@@ -15,8 +8,8 @@ namespace SwipePOC
     public class ListAdapter : BaseAdapter
     {
 
-        private Context _context;
-        private List<string> _items = new List<string>();
+        private readonly Context _context;
+        private readonly List<string> _items = new List<string>();
 
         public ListAdapter(Context context)
         {
@@ -30,7 +23,6 @@ namespace SwipePOC
             _items.Add("Hello world one two three four 7");
             _items.Add("Hello world one two three four 8");
         }
-
 
         public override Java.Lang.Object GetItem(int position)
         {
@@ -47,7 +39,7 @@ namespace SwipePOC
 
         public override View GetView(int position, View convertView, ViewGroup parent)
         {
-            ListAdapterViewHolder holder = convertView as ListAdapterViewHolder;
+            var holder = convertView as ListAdapterViewHolder;
 
             if (holder == null)
             {
@@ -69,7 +61,7 @@ namespace SwipePOC
             return holder;
         }
 
-        //Fill in cound here, currently 0
+        //Fill in count here, currently 0
         public override int Count => _items.Count;
 
     }

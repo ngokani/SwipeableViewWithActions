@@ -2,6 +2,7 @@
 using Android.Content;
 using Android.Graphics;
 using Android.Graphics.Drawables;
+using Android.OS;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
@@ -17,6 +18,7 @@ namespace SwipePOC
         private Color _leftActionColor = Color.Transparent;
         private Color _rightActionColor = Color.Transparent;
         private GestureDetector _gestureDetector;
+        private Vibrator _vibrator;
         private FrameLayout _leftViewGroup;
         private FrameLayout _rightViewGroup;
 
@@ -34,13 +36,13 @@ namespace SwipePOC
 
         public bool SwipeToActionEnabled { get; set; } = false;
 
-        public SwipeableViewWithActions(Context context)
+        protected SwipeableViewWithActions(Context context)
             : base(context)
         {
             Initialize();
         }
 
-        public SwipeableViewWithActions(Context context, IAttributeSet attrs)
+        protected SwipeableViewWithActions(Context context, IAttributeSet attrs)
             : base(context, attrs)
         {
             Initialize();
@@ -50,6 +52,7 @@ namespace SwipePOC
         {
             _gestureDetector = new GestureDetector(this);
             _swipeSlop = ViewConfiguration.Get(Context).ScaledTouchSlop;
+            _vibrator = (Vibrator)Context.GetSystemService(Context.VibratorService);
 
             _leftViewGroup = new FrameLayout(Context);
             _rightViewGroup = new FrameLayout(Context);
@@ -186,7 +189,7 @@ namespace SwipePOC
         }
 
         /// <summary>
-        /// Notified when a long press occurs with the initial on down MotionEvent that trigged it.
+        /// Notified when a long press occurs with the initial on down MotionEvent that triggered it.
         /// </summary>
         /// <param name="initialOnDownEvent">Initial on down motion event</param>
         public virtual void OnLongPress(MotionEvent initialOnDownEvent)
@@ -208,13 +211,13 @@ namespace SwipePOC
         #endregion IOnGestureDectector Implementation
 
         #region IOnTouchListener implementation
-        public bool OnTouch(View v, MotionEvent e)
+        public bool OnTouch(View view, MotionEvent motionEvent)
         {
-            if (v.GetType() == ContentView?.GetType())
+            if (view.GetType() == ContentView?.GetType())
             {
-                if (!_gestureDetector.OnTouchEvent(e))
+                if (!_gestureDetector.OnTouchEvent(motionEvent))
                 {
-                    if (e.Action == MotionEventActions.Up || e.Action == MotionEventActions.Cancel)
+                    if (motionEvent.Action == MotionEventActions.Up || motionEvent.Action == MotionEventActions.Cancel)
                     {
                         bool swipingRight = ContentView.TranslationX > 0;
                         bool swipingLeft = ContentView.TranslationX < 0;
@@ -244,7 +247,7 @@ namespace SwipePOC
                         }
                         else if (ContentView.TranslationX < RightActionButtonLeftX())
                         {
-                            if (SwipeToActionEnabled && FullSwipeLeftThresholdMet(ContentView.TranslationX))
+                            if (SwipeToActionEnabled && CheckFullSwipeLeftThresholdMet(ContentView.TranslationX))
                             {
                                 SwipeFullLeft();
                             }
@@ -255,7 +258,7 @@ namespace SwipePOC
                         }
                         else if (ContentView.TranslationX > LeftActionButtonRightX())
                         {
-                            if (SwipeToActionEnabled && FullSwipeRightThresholdMet(ContentView.TranslationX))
+                            if (SwipeToActionEnabled && CheckFullSwipeRightThresholdMet(ContentView.TranslationX))
                             {
                                 SwipeFullRight();
                             }
@@ -286,7 +289,7 @@ namespace SwipePOC
         public abstract void OnFullSwipeRight();
 
         #region Swiping Methods
-        private void AnimateTranslation(float endX, bool fullSwipe = false)
+        private void AnimateTranslation(float endX, bool fullSwipe)
         {
             int alpha = fullSwipe ? 0 : 1;
 
@@ -329,16 +332,18 @@ namespace SwipePOC
         private void SwipeToUncoverRightActionButton()
         {
             AnimateTranslation(RightActionButtonLeftX(), false);
+            VerificationVibrate();
         }
 
         private void SwipeToUncoverLeftActionButton()
         {
             AnimateTranslation(LeftActionButtonRightX(), false);
+            VerificationVibrate();
         }
 
         protected void ResetView()
         {
-            AnimateTranslation(0);
+            AnimateTranslation(0, false);
             this.Background = new ColorDrawable(Color.Transparent);
             if (LeftActionButton != null)
             {
@@ -350,13 +355,13 @@ namespace SwipePOC
             }
         }
 
-        private bool FullSwipeLeftThresholdMet(float dX)
+        private bool CheckFullSwipeLeftThresholdMet(float dX)
         {
             float activationX = Width * -0.4f;
             return dX < activationX;
         }
 
-        private bool FullSwipeRightThresholdMet(float dX)
+        private bool CheckFullSwipeRightThresholdMet(float dX)
         {
             float activationX = Width * 0.4f;
             return dX > activationX;
@@ -379,7 +384,7 @@ namespace SwipePOC
             if (System.Math.Abs(dX) < _swipeSlop)
                 return false;
 
-            float centerX = 0;
+            float centerX;
             SetAppearanceForSwipe(swipingDirection);
 
             switch (swipingDirection)
@@ -448,5 +453,17 @@ namespace SwipePOC
             return dX > 0 ? SwipingDirection.Right : SwipingDirection.Left;
         }
         #endregion Swiping methods
+
+        private void VerificationVibrate()
+        {
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                _vibrator.Vibrate(VibrationEffect.CreateOneShot(100, 100));
+            }
+            else
+            {
+                _vibrator.Vibrate(100);
+            }
+        }
     }
 }
